@@ -1,0 +1,11 @@
+{
+  "requires": true,
+  "lockfileVersion": 1,
+  "dependencies": {
+  },
+  "scripts": {
+    "start" : "node app.js",
+    "dev" : "node app.js TOM 23"
+  }
+}
+

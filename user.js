@@ -1,10 +1,14 @@
 function User(name, age){
+     
     this.name = name;
     this.age = age;
-
-    this.sayHi = () => {
-        console.log(this.name + ' ' + this.age)
+    this.displayInfo = function(){
+         
+        console.log(`Имя: ${this.name}  Возраст: ${this.age}`);
     }
 }
-
-module.exports = User
+User.prototype.sayHi = function() {
+    console.log(`Привет, меня зовут ${this.name}`);
+};
+ 
+module.exports = User;

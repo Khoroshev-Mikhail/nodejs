@@ -1,7 +1,7 @@
-console.log('greeting noduel')
-let currentTime = new Date()
-module.exports.date = currentTime;
-module.exports.getMessage = function(){
-    let hour = currentTime.getHours()
-    return hour > 16 ? 'Good evening' : 'Good moorning'
+let currentDate = new Date();
+global.date = currentDate;
+module.exports.name = "Alice";
+module.exports.getMessage = function(name){
+    let hour = currentDate.getHours();
+        return "Hi " + global.name;
 }
