@@ -1,7 +1,14 @@
-const http = require('http')
+const express = require('express')
 const fs = require('fs')
-http.createServer(async(request, response) => {
-   fs.readFile('index.html', 'utf-8', (error, data) => {
-    response.end(data.replace('{title}', 'ZAGOLOVOK'))
-   })
-}).listen(3000);
+const app = express()
+
+const JSONparser = express.json()
+
+app.get("/",function (request, response) {
+    response.sendFile(__dirname + '/index.html')
+});
+app.post('/user', JSONparser, (request, response) => {
+    if(!request.body) response.sendStatus(400)
+    response.json(request.body)
+})
+app.listen(3000)
