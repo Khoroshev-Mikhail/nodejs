@@ -1,2 +1,0 @@
-Second: 55, minute: 55, hour: 8
-Second: 1, minute: 56, hour: 8

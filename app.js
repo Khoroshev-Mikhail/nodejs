@@ -1,10 +1,10 @@
 const express = require("express");
 const fs = require("fs");
-const { send } = require("process");
 const jsonParser = express.json()
 const app = express()
 
 app.use(express.static(__dirname + '/public'))
+
 const filePath = 'users.json'
 app.get('/api/users', (req, res) => {
     const content = fs.readFileSync(filePath, 'utf-8')
@@ -15,8 +15,8 @@ app.get('/api/users/:id', (req, res) => {
     const id = req.params.id
     const content = fs.readFileSync(filePath, 'utf-8')
     const users = JSON.parse(content)
-    const user = [...users.filter(el => el.id == id)]
-    if(user !== undefined){
+    const user = users.find(el => el.id == id)
+    if(user === undefined){
         res.status(404).send()
     } else{
         res.send(user)
@@ -28,10 +28,10 @@ app.post('/api/users', jsonParser, (req, res) => {
     }
     let data = fs.readFileSync(filePath, 'utf-8')
     let users = JSON.parse(data)
-    const userId = Math.max([...users.map(el => Number(el.id))])
-    const userName = req.body.userName
-    const userAge = req.body.userAge
-    const user = {id: userId, name: userName, age: userAge}
+    const userId = Math.max(...users.map(el => Number(el.id))) + 1
+    const userName = req.body.name
+    const userAge = req.body.age
+    const user = { id: userId, name: userName, age: userAge }
     users.push(user)
     data = JSON.stringify(users)
     fs.writeFileSync('users.json', data)
@@ -41,15 +41,15 @@ app.delete('/api/users/:id', (req, res) => {
     const id = req.params.id
     let data = fs.readFileSync(filePath, 'utf-8')
     let users = JSON.parse(data)
-    const index = users.findIndex(el => el.id === id)
-    if(index > -1){
-        const user = [...users.splice(index, 1)]
-        data = JSON.stringify(users)
-        fs.writeFileSync('users.json', data)
-        res.send(user)
-    } else{
-        res.status(404).send()
+    const index = users.findIndex(el => el.id === Number(id))
+    console.log(index)
+    if(index < 0){
+        return res.status(404)
     }
+    const user = users.splice(index, 1)[0]
+    data = JSON.stringify(users)
+    fs.writeFileSync('users.json', data)
+    res.send(user)
 })
 app.put('/api/users', jsonParser, (req, res) => {
     if(!req.body) return res.sendStatus(400);
