@@ -3,83 +3,50 @@ const fs = require("fs");
 const jsonParser = express.json()
 const app = express()
 
-app.use(express.static(__dirname + '/public'))
+const VOCABULARY = 'vocabulary'
+const GROUPS = 'groups'
+const DICTIONARY = 'dictionary'
 
-const filePath = 'users.json'
-app.get('/api/users', (req, res) => {
-    const content = fs.readFileSync(filePath, 'utf-8')
-    const users = JSON.parse(content)
-    res.send(users)
+app.get('/', (req, res) => {
+    res.send(`<h1>API is working</h1>`)
 })
-app.get('/api/users/:id', (req, res) => {
-    const id = req.params.id
-    const content = fs.readFileSync(filePath, 'utf-8')
-    const users = JSON.parse(content)
-    const user = users.find(el => el.id == id)
-    if(user === undefined){
-        res.status(404).send()
-    } else{
-        res.send(user)
-    }
-})
-app.post('/api/users', jsonParser, (req, res) => {
-    if(! req.body){
+
+function getJSONFiles(path){
+    app.get('/' + path, (req, res) => {
+        const data = fs.readFileSync(__dirname + '/baseData/' + path + '.json', 'utf-8')
+        res.send(JSON.parse(data))
+    })
+}
+getJSONFiles(VOCABULARY)
+getJSONFiles(GROUPS)
+getJSONFiles(DICTIONARY)
+
+app.post('/setVocabulary', jsonParser, (req, res) => {
+    if(!req.body){
         return res.sendStatus(400)
     }
-    let data = fs.readFileSync(filePath, 'utf-8')
-    let users = JSON.parse(data)
-    const userId = Math.max(...users.map(el => Number(el.id))) + 1
-    const userName = req.body.name
-    const userAge = req.body.age
-    const user = { id: userId, name: userName, age: userAge }
-    users.push(user)
-    data = JSON.stringify(users)
-    fs.writeFileSync('users.json', data)
-    res.send(user)
+    const filePath = __dirname + '/baseData/vocabulary.json'
+    const method = req.body.params.method
+    const idWord = req.body.params.idWord
+    const data = fs.readFileSync(filePath, 'utf-8')
+    let vocabulary = JSON.parse(data)
+    vocabulary = {...vocabulary, [method] : [...vocabulary[method], idWord]}
+    fs.writeFileSync(filePath, JSON.stringify(vocabulary))
 })
-app.delete('/api/users/:id', (req, res) => {
-    const id = req.params.id
-    let data = fs.readFileSync(filePath, 'utf-8')
-    let users = JSON.parse(data)
-    const index = users.findIndex(el => el.id === Number(id))
-    console.log(index)
-    if(index < 0){
-        return res.status(404)
+app.get('/setVocabulary', jsonParser, (req, res) => {
+    res.send('tut')
+    if(!req.body){
+        return res.sendStatus(400)
     }
-    const user = users.splice(index, 1)[0]
-    data = JSON.stringify(users)
-    fs.writeFileSync('users.json', data)
-    res.send(user)
-})
-app.put('/api/users', jsonParser, (req, res) => {
-    if(!req.body) return res.sendStatus(400);
-      
-    const userId = req.body.id;
-    const userName = req.body.name;
-    const userAge = req.body.age;
-      
-    let data = fs.readFileSync(filePath, "utf8");
-    const users = JSON.parse(data);
-    let user = false;
-    for(var i=0; i<users.length; i++){
-        if(users[i].id==userId){
-            user = users[i];
-            break;
-        }
-    }
-    
-    if(user){
-        user.age = userAge;
-        user.name = userName;
-        data = JSON.stringify(users);
-        fs.writeFileSync("users.json", data);
-        res.send(user);
-    }
-    else{
-        res.status(404).send(user);
-    }
+    const filePath = __dirname + '/baseData/vocabulary.json'
+    const method = 'spell'
+    const idWord = 999
+    const data = fs.readFileSync(filePath, 'utf-8')
+    let vocabulary = JSON.parse(data)
+    vocabulary = {...vocabulary, [method] : [...vocabulary[method], idWord]}
+    fs.writeFileSync(filePath, JSON.stringify(vocabulary))
 })
 
-app.listen(3000, ()=>{
+app.listen(3001, ()=>{
     console.log('Сервер ожидает запросов...')
 })
