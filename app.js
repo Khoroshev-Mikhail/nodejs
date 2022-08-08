@@ -50,9 +50,9 @@ app.post('/setGroups', jsonParser, (req, res) => {
     const data = fs.readFileSync(filePath, 'utf-8')
     const eng = req.body.eng
     const title = req.body.title
+    const newGroup = {eng, title}
     let groups = JSON.parse(data)
-    //groups = [...groups, {eng, title}] после проверки перерефакторить на это, просто не уверен что так сработает!
-    groups = [...groups, {eng: eng, title: title}]
+    groups = [...groups, newGroup]
     fs.writeFileSync(filePath, JSON.stringify(groups))
     res.sendStatus(200)
 })
@@ -68,9 +68,24 @@ app.post('/setDictionary', jsonParser, (req, res) => {
     const rus = req.body.rus
     const groups = req.body.groups
     const id = Math.max(...dictionary.map(el => el.id)) + 1
-    //const newWord = {id: id, eng: eng, rus: rus, groups: groups}
     const newWord = {id, eng, rus, groups}
     dictionary = [...dictionary, newWord]
+    fs.writeFileSync(filePath, JSON.stringify(dictionary))
+    res.sendStatus(200)
+})
+app.post('/updateDictionary', jsonParser, (req, res) => {
+    if(!req.body){
+        return res.sendStatus(400)
+    }
+    const filePath = __dirname + '/baseData/dictionary.json'
+    const data = fs.readFileSync(filePath, 'utf-8')
+    let dictionary = JSON.parse(data)
+    const eng = req.body.eng
+    const rus = req.body.rus
+    const groups = req.body.groups
+    const id = req.body.id
+    const newWord = {id, eng, rus, groups}
+    dictionary = [...dictionary.filter(el => el.id !== id), newWord]
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
 })
