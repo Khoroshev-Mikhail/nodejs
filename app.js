@@ -48,14 +48,33 @@ app.post('/setGroups', jsonParser, (req, res) => {
     }
     const filePath = __dirname + '/baseData/groups.json'
     const data = fs.readFileSync(filePath, 'utf-8')
+    let groups = JSON.parse(data)
     const eng = req.body.eng
     const title = req.body.title
     const newGroup = {eng, title}
-    let groups = JSON.parse(data)
+    const id = Math.max(...groups.map(el => el.id)) + 1
     groups = [...groups, newGroup]
     fs.writeFileSync(filePath, JSON.stringify(groups))
     res.sendStatus(200)
 })
+
+app.post('/updateGroups', jsonParser, (req, res) => {
+    if(!req.body){
+        return res.sendStatus(400)
+    }
+    const filePath = __dirname + '/baseData/groups.json'
+    const data = fs.readFileSync(filePath, 'utf-8')
+    let groups = JSON.parse(data)
+    const id = req.body.id
+    const eng = req.body.eng
+    const title = req.body.title
+    const updatingGroup = {id, eng, title}
+    groups = ([...groups.filter(el => el.id !== id), updatingGroup]).sort((a, b) => a.eng.localeCompare(b.eng))
+    fs.writeFileSync(filePath, JSON.stringify(groups))
+    res.sendStatus(200)
+})
+
+
 app.post('/deleteGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
