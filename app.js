@@ -56,6 +56,18 @@ app.post('/setGroups', jsonParser, (req, res) => {
     fs.writeFileSync(filePath, JSON.stringify(groups))
     res.sendStatus(200)
 })
+app.post('/deleteGroups', jsonParser, (req, res) => {
+    if(!req.body){
+        return res.sendStatus(400)
+    }
+    const filePath = __dirname + '/baseData/groups.json'
+    const data = fs.readFileSync(filePath, 'utf-8')
+    const eng = req.body.eng
+    let groups = JSON.parse(data)
+    groups = groups.filter(el => el.eng !== eng)
+    fs.writeFileSync(filePath, JSON.stringify(groups))
+    res.sendStatus(200)
+})
 
 app.post('/setDictionary', jsonParser, (req, res) => {
     if(!req.body){
@@ -69,7 +81,19 @@ app.post('/setDictionary', jsonParser, (req, res) => {
     const groups = req.body.groups
     const id = Math.max(...dictionary.map(el => el.id)) + 1
     const newWord = {id, eng, rus, groups}
-    dictionary = [...dictionary, newWord]
+    dictionary = ([...dictionary, newWord]).sort((a, b) => a.eng.localeCompare(b.eng))
+    fs.writeFileSync(filePath, JSON.stringify(dictionary))
+    res.sendStatus(200)
+})
+app.post('/deleteDictionary', jsonParser, (req, res) => {
+    if(!req.body){
+        return res.sendStatus(400)
+    }
+    const filePath = __dirname + '/baseData/dictionary.json'
+    const data = fs.readFileSync(filePath, 'utf-8')
+    let dictionary = JSON.parse(data)
+    const id = req.body.id
+    dictionary = dictionary.filter(el => el.id !== id)
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
 })
@@ -85,7 +109,8 @@ app.post('/updateDictionary', jsonParser, (req, res) => {
     const groups = req.body.groups
     const id = req.body.id
     const newWord = {id, eng, rus, groups}
-    dictionary = [...dictionary.filter(el => el.id !== id), newWord]
+    console.log(newWord)
+    dictionary = ([...dictionary.filter(el => el.id !== id), newWord]).sort((a, b) => a.eng.localeCompare(b.eng))
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
 })
