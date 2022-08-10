@@ -3,13 +3,17 @@ const fs = require("fs");
 const jsonParser = express.json()
 const app = express()
 
-const VOCABULARY = 'vocabulary'
 const GROUPS = 'groups'
 const DICTIONARY = 'dictionary'
 
+// https://expressjs.com/en/guide/using-middleware.html
+// const router = express.Router()
+
+
 //перед выгрузкой удалить!!! для устранения ошибки на локальном сервере
+//CORS
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", "*"); //указать конкретный домен
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
@@ -19,25 +23,47 @@ app.get('/', (req, res) => {
 })
 
 function getJSONFiles(path){
-    app.get('/' + path, (req, res) => {
+    app.post('/' + path, jsonParser, (req, res) => {
         const data = fs.readFileSync(__dirname + '/baseData/' + path + '.json', 'utf-8')
         res.send(JSON.parse(data))
     })
 }
-getJSONFiles(VOCABULARY)
 getJSONFiles(GROUPS)
 getJSONFiles(DICTIONARY)
+
+app.post('/vocabulary', jsonParser, (req, res) => {
+    if(!req.body.id){
+        return res.sendStatus(400)
+    }
+    const data = fs.readFileSync(__dirname + '/baseData/vocabulary.json', 'utf-8')
+    const id = req.body.id
+    const vocabulary = JSON.parse(data).find(el => el.userId == id)
+    if(!vocabulary){
+        return res.sendStatus(400)
+    }
+    res.send(vocabulary)
+})
 
 app.post('/setVocabulary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
     }
+    //Добавить проверку на правильно метода
+    //Сперва получить методы из массива и сравнить с входящим
     const filePath = __dirname + '/baseData/vocabulary.json'
     const data = fs.readFileSync(filePath, 'utf-8')
+    const userId = req.body.userId
     const method = req.body.method
     const idWord = req.body.idWord
     let vocabulary = JSON.parse(data)
-    vocabulary = {...vocabulary, [method] : [...vocabulary[method], idWord]}
+    let userVocabulary = vocabulary.find(el => el.userId == userId)
+    console.log(userId)
+    if(!userVocabulary){
+        res.sendStatus(400)
+    }
+    userVocabulary = {...userVocabulary, [method] : [...userVocabulary[method], idWord]}
+    vocabulary = vocabulary.filter(el => el.userId !== userId)
+    vocabulary.push(userVocabulary)
     fs.writeFileSync(filePath, JSON.stringify(vocabulary))
     res.sendStatus(200)
 })
@@ -69,7 +95,7 @@ app.post('/updateGroups', jsonParser, (req, res) => {
     const eng = req.body.eng
     const title = req.body.title
     const updatingGroup = {id, eng, title}
-    groups = ([...groups.filter(el => el.id !== id), updatingGroup]).sort((a, b) => a.eng.localeCompare(b.eng))
+    groups = ([...groups.filter(el => el.id !== id), updatingGroup]).sort((a, b) => a.eng.localeCompare(b.eng)) //Сортировку по id?
     fs.writeFileSync(filePath, JSON.stringify(groups))
     res.sendStatus(200)
 })
