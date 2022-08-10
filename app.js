@@ -51,8 +51,8 @@ app.post('/setGroups', jsonParser, (req, res) => {
     let groups = JSON.parse(data)
     const eng = req.body.eng
     const title = req.body.title
-    const newGroup = {eng, title}
     const id = Math.max(...groups.map(el => el.id)) + 1
+    const newGroup = {id, eng, title}
     groups = [...groups, newGroup]
     fs.writeFileSync(filePath, JSON.stringify(groups))
     res.sendStatus(200)
@@ -128,7 +128,6 @@ app.post('/updateDictionary', jsonParser, (req, res) => {
     const groups = req.body.groups
     const id = req.body.id
     const newWord = {id, eng, rus, groups}
-    console.log(newWord)
     dictionary = ([...dictionary.filter(el => el.id !== id), newWord]).sort((a, b) => a.eng.localeCompare(b.eng))
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
