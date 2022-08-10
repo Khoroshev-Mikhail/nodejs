@@ -57,7 +57,6 @@ app.post('/setVocabulary', jsonParser, (req, res) => {
     const idWord = req.body.idWord
     let vocabulary = JSON.parse(data)
     let userVocabulary = vocabulary.find(el => el.userId == userId)
-    console.log(userId)
     if(!userVocabulary){
         res.sendStatus(400)
     }
