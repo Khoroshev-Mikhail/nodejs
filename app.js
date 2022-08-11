@@ -44,6 +44,7 @@ app.post('/vocabulary', jsonParser, (req, res) => {
     res.send(vocabulary)
 })
 
+//Может быть добавить проверку на пароль?
 app.post('/setVocabulary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -67,6 +68,7 @@ app.post('/setVocabulary', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
+//Может быть добавить проверку на пароль?
 app.post('/setGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -83,6 +85,7 @@ app.post('/setGroups', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
+//Может быть добавить проверку на пароль?
 app.post('/updateGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -100,6 +103,7 @@ app.post('/updateGroups', jsonParser, (req, res) => {
 })
 
 
+//Может быть добавить проверку на пароль?
 app.post('/deleteGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -113,6 +117,7 @@ app.post('/deleteGroups', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
+//Может быть добавить проверку на пароль?
 app.post('/setDictionary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -129,6 +134,7 @@ app.post('/setDictionary', jsonParser, (req, res) => {
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
 })
+//Может быть добавить проверку на пароль?
 app.post('/deleteDictionary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -141,6 +147,7 @@ app.post('/deleteDictionary', jsonParser, (req, res) => {
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
 })
+//Может быть добавить проверку на пароль?
 app.post('/updateDictionary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -158,7 +165,27 @@ app.post('/updateDictionary', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
-
+//Может быть добавить проверку на пароль?
+app.post('/authorization', jsonParser, (req, res) => {
+    if(!req.body){
+        return res.sendStatus(400)
+    }
+    let authorization = false
+    const filePath = __dirname + '/baseData/users.json'
+    const data = fs.readFileSync(filePath, 'utf-8')
+    const users = JSON.parse(data)
+    const login = req.body.login
+    const pwd = req.body.pwd
+    const user = users.find(el => el.login === login && el.pwd === pwd)
+    if(user){
+        authorization = true
+    }
+    if(!authorization){
+        return res.sendStatus(400)
+    }
+    //Правильно???
+    res.send(user)
+})
 app.listen(3001, ()=>{
     console.log('Сервер ожидает запросов...')
 })
