@@ -61,15 +61,18 @@ app.post('/vocabulary', jsonParser, (req, res) => {
 })
 
 app.post('/setVocabulary', jsonParser, (req, res) => {
+    //Написать более грамонтную проверку на наличие всех меременных в запросе? что они не пустые
     if(!req.body){
         return res.sendStatus(400)
     }
-    //Добавить проверку на правильно метода
-    //Сперва получить методы из массива и сравнить с входящим
+    const methodsArr = ['englishToRussian', 'russianToEnglish', 'spell', 'listening']
     const filePath = __dirname + '/baseData/vocabulary.json'
     const data = fs.readFileSync(filePath, 'utf-8')
     const {userId, pwd, method, idWord} = req.body
     if(!checkAuth(userId, pwd)){
+        return res.sendStatus(400)
+    }
+    if(!methodsArr.includes(method)){
         return res.sendStatus(400)
     }
     let vocabulary = JSON.parse(data)
@@ -84,7 +87,7 @@ app.post('/setVocabulary', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
-//Может быть добавить проверку на пароль?
+
 app.post('/setGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -103,7 +106,7 @@ app.post('/setGroups', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
-//Может быть добавить проверку на пароль?
+
 app.post('/updateGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -124,7 +127,6 @@ app.post('/updateGroups', jsonParser, (req, res) => {
 })
 
 
-//Может быть добавить проверку на пароль?
 app.post('/deleteGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -141,7 +143,7 @@ app.post('/deleteGroups', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
-//Может быть добавить проверку на пароль?
+
 app.post('/setDictionary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -159,7 +161,8 @@ app.post('/setDictionary', jsonParser, (req, res) => {
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
 })
-//Может быть добавить проверку на пароль?
+
+
 app.post('/deleteDictionary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -194,7 +197,6 @@ app.post('/updateDictionary', jsonParser, (req, res) => {
     res.sendStatus(200)
 })
 
-//Может быть добавить проверку на пароль?
 app.post('/authorization', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
