@@ -28,6 +28,22 @@ function getJSONFiles(path){
         res.send(JSON.parse(data))
     })
 }
+
+function checkAuth(userId, pwd){
+    const data = fs.readFileSync(__dirname + '/baseData/users.json', 'utf-8')
+    const users = JSON.parse(data)
+    console.log(users.find(user => user.userId === userId && user.pwd === pwd) === undefined ? 'auth is false' : 'auth is true')
+    return users.find(user => user.userId === userId && user.pwd === pwd) === undefined ? false : true
+}
+
+function isAdmin(pwd){
+    const data = fs.readFileSync(__dirname + '/baseData/users.json', 'utf-8')
+    const users = JSON.parse(data)
+    console.log(users.find(user => user.userId === 1 && user.pwd === pwd) === undefined ? 'THIS IS NO ADMIN' : 'this is admin')
+    return users.find(user => user.userId === 1 && user.pwd === pwd) === undefined ? false : true
+}
+
+
 getJSONFiles(GROUPS)
 getJSONFiles(DICTIONARY)
 
@@ -44,7 +60,6 @@ app.post('/vocabulary', jsonParser, (req, res) => {
     res.send(vocabulary)
 })
 
-//Может быть добавить проверку на пароль?
 app.post('/setVocabulary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -53,9 +68,10 @@ app.post('/setVocabulary', jsonParser, (req, res) => {
     //Сперва получить методы из массива и сравнить с входящим
     const filePath = __dirname + '/baseData/vocabulary.json'
     const data = fs.readFileSync(filePath, 'utf-8')
-    const userId = req.body.userId
-    const method = req.body.method
-    const idWord = req.body.idWord
+    const {userId, pwd, method, idWord} = req.body
+    if(!checkAuth(userId, pwd)){
+        return res.sendStatus(400)
+    }
     let vocabulary = JSON.parse(data)
     let userVocabulary = vocabulary.find(el => el.userId == userId)
     if(!userVocabulary){
@@ -76,8 +92,10 @@ app.post('/setGroups', jsonParser, (req, res) => {
     const filePath = __dirname + '/baseData/groups.json'
     const data = fs.readFileSync(filePath, 'utf-8')
     let groups = JSON.parse(data)
-    const eng = req.body.eng
-    const title = req.body.title
+    const {userId, pwd, eng, title } = req.body
+    if(! isAdmin(pwd)){
+        return res.sendStatus(400)
+    }
     const id = Math.max(...groups.map(el => el.id)) + 1
     const newGroup = {id, eng, title}
     groups = [...groups, newGroup]
@@ -90,12 +108,15 @@ app.post('/updateGroups', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
     }
+    const {userId, pwd} = req.body
+    if(! isAdmin(pwd)){
+        return res.sendStatus(400)
+    }
+
     const filePath = __dirname + '/baseData/groups.json'
     const data = fs.readFileSync(filePath, 'utf-8')
     let groups = JSON.parse(data)
-    const id = req.body.id
-    const eng = req.body.eng
-    const title = req.body.title
+    const {id, eng, title} = req.body.group
     const updatingGroup = {id, eng, title}
     groups = ([...groups.filter(el => el.id !== id), updatingGroup]).sort((a, b) => a.eng.localeCompare(b.eng)) //Сортировку по id?
     fs.writeFileSync(filePath, JSON.stringify(groups))
@@ -110,9 +131,12 @@ app.post('/deleteGroups', jsonParser, (req, res) => {
     }
     const filePath = __dirname + '/baseData/groups.json'
     const data = fs.readFileSync(filePath, 'utf-8')
-    const eng = req.body.eng
+    const {userId, pwd, idGroup} = req.body
+    if(! isAdmin(pwd)){
+        return res.sendStatus(400)
+    }
     let groups = JSON.parse(data)
-    groups = groups.filter(el => el.eng !== eng)
+    groups = groups.filter(el => el.id !== idGroup)
     fs.writeFileSync(filePath, JSON.stringify(groups))
     res.sendStatus(200)
 })
@@ -125,9 +149,10 @@ app.post('/setDictionary', jsonParser, (req, res) => {
     const filePath = __dirname + '/baseData/dictionary.json'
     const data = fs.readFileSync(filePath, 'utf-8')
     let dictionary = JSON.parse(data)
-    const eng = req.body.eng
-    const rus = req.body.rus
-    const groups = req.body.groups
+    const { userId, pwd, eng, rus, groups} = req.body
+    if(! isAdmin(pwd)){
+        return res.sendStatus(400)
+    }
     const id = Math.max(...dictionary.map(el => el.id)) + 1
     const newWord = {id, eng, rus, groups}
     dictionary = ([...dictionary, newWord]).sort((a, b) => a.eng.localeCompare(b.eng))
@@ -142,12 +167,15 @@ app.post('/deleteDictionary', jsonParser, (req, res) => {
     const filePath = __dirname + '/baseData/dictionary.json'
     const data = fs.readFileSync(filePath, 'utf-8')
     let dictionary = JSON.parse(data)
-    const id = req.body.id
-    dictionary = dictionary.filter(el => el.id !== id)
+    const {userId, pwd, idWord} = req.body
+    if(! isAdmin(pwd)){
+        return res.sendStatus(400)
+    }
+    dictionary = dictionary.filter(el => el.id !== idWord)
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
     res.sendStatus(200)
 })
-//Может быть добавить проверку на пароль?
+
 app.post('/updateDictionary', jsonParser, (req, res) => {
     if(!req.body){
         return res.sendStatus(400)
@@ -155,10 +183,11 @@ app.post('/updateDictionary', jsonParser, (req, res) => {
     const filePath = __dirname + '/baseData/dictionary.json'
     const data = fs.readFileSync(filePath, 'utf-8')
     let dictionary = JSON.parse(data)
-    const eng = req.body.eng
-    const rus = req.body.rus
-    const groups = req.body.groups
-    const id = req.body.id
+    const {userId, pwd} = req.body
+    if(! isAdmin(pwd)){
+        return res.sendStatus(400)
+    }
+    const { eng, rus, groups, id} = req.body.word
     const newWord = {id, eng, rus, groups}
     dictionary = ([...dictionary.filter(el => el.id !== id), newWord]).sort((a, b) => a.eng.localeCompare(b.eng))
     fs.writeFileSync(filePath, JSON.stringify(dictionary))
@@ -174,8 +203,7 @@ app.post('/authorization', jsonParser, (req, res) => {
     const filePath = __dirname + '/baseData/users.json'
     const data = fs.readFileSync(filePath, 'utf-8')
     const users = JSON.parse(data)
-    const login = req.body.login
-    const pwd = req.body.pwd
+    const { login, pwd } = req.body
     const user = users.find(el => el.login === login && el.pwd === pwd)
     if(user){
         authorization = true
